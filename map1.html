@@ -14,33 +14,7 @@
       }
 
     </style>
-    <label id="minutes">00</label>:<label id="seconds">00</label>
-    <script type="text/javascript">
-        var minutesLabel = document.getElementById("minutes");
-        var secondsLabel = document.getElementById("seconds");
-        var totalSeconds = 0;
-        setInterval(setTime, 1000);
-
-        function setTime()
-        {
-            ++totalSeconds;
-            secondsLabel.innerHTML = pad(totalSeconds%60);
-            minutesLabel.innerHTML = pad(parseInt(totalSeconds/60));
-        }
-
-        function pad(val)
-        {
-            var valString = val + "";
-            if(valString.length < 2)
-            {
-                return "0" + valString;
-            }
-            else
-            {
-                return valString;
-            }
-        }
-    </script>
+    
     <script src="https://raw.githubusercontent.com/mholt/PapaParse/master/papaparse.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true"></script>
@@ -69,6 +43,18 @@
     var positionsCounterBike = {};
     
     positionsCounterBike["Berri1"] = { center: new google.maps.LatLng(45.515333, -73.561073)};
+    var cityCircle = null;
+    var posData = 0; 
+    var max1 = 0; 
+    var dataBerry1 = null; 
+    var optionsBerry = null; 
+
+    function setUpdateRadius()
+    {
+      posData+=1;
+      // cityCircle.setOptions(radius =   dataBerry1["data"][i]/max1*300) ;
+      cityCircle.setRadius(dataBerry1["data"][posData]/max1*300)
+    }
 
     function initialize() 
     {
@@ -92,11 +78,12 @@
         center: myLatlng,
         disableDefaultUI: true
       }
-      
+      // Max is 300 
+      // console.log(dataBerry1["data"][0]/max1*300)
       var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
       var optionsBerry = {
         center : dataBerry1["center"], 
-        radius :  70,
+        radius :  dataBerry1["data"][0]/max1*300,
         map : map ,
         strokeColor: '#FF0000',
         strokeOpacity: 0.8,
@@ -112,6 +99,8 @@
           title: 'Hello World!'});
 
       cityCircle = new google.maps.Circle(optionsBerry);
+
+      setInterval(setUpdateRadius, 1000);
 
     }
     google.maps.event.addDomListener(window, 'load', initialize);
