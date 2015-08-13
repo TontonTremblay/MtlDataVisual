@@ -9,62 +9,95 @@
 
       google.load("visualization", "1", {packages:["geochart"]});
       google.setOnLoadCallback(drawRegionsMap);
-
+      var timeMaster = 1; 
       var dataCSV = null;
+      var data = null;
 
       var options = {};
 
       var chart = null; 
       
 
+
       // consol.log(dataCSV["data"]);
 
       var content;
 
-
-
-      function processFile() {
-          console.log(content);
+      function updateTimeTick()
+      {
+        //This function update the time ever half second. 
+        //It changes the slider position as well as putting 
+        //the date in the id='time'
+        // return;
+        console.log(dataCSV);
+        timeMaster+=1;
+        if (timeMaster>dataCSV["data"][0].length-1)
+          timeMaster = 1; 
+        UpdateMap();
       }
+
+
 
       function ChangeTime(value)
       {
+        //This is the function that changes the timeMaster 
+        //when the slider is moved.
+        // timeMaster = Math.floor(value/100.0*(data["data"].length-1));
+        // console.log(timeMaster);
+        UpdateMap();
+      }
+
+
+
+      function UpdateMap(value)
+      {
+        // Update the HTML
+        document.getElementById("timeHTML").innerHTML = ""+dataCSV["data"][0][timeMaster];
+        document.getElementById("sliderHTML").value = "" + 
+          Math.floor(timeMaster/(dataCSV["data"][0].length-1)*100);
         
-        data = google.visualization.arrayToDataTable([
-          ['region', 'Popularity',],
-          ['BRA', Math.floor(Math.random()*1000) ],
-          ['United States', Math.floor(Math.random()*1000) ],
-          ['Brazil', Math.floor(Math.random()*1000) ],
-          ['Canada', Math.floor(Math.random()*1000) ],
-          ['France', Math.floor(Math.random()*1000) ],
-          ['RU', Math.floor(Math.random()*1000) ]
-        ]);
+        data = [['region', 'Popularity',]];
+        data.push(['BRA', Math.floor(Math.random()*1000) ]);
+        data = google.visualization.arrayToDataTable(data);
+          
         chart.draw(data, options);
       }
 
 
-      function drawRegionsMap() {
+      function drawRegionsMap() 
+      {
+        // Load the data.
+        if (window.XMLHttpRequest)
+        {// code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp=new XMLHttpRequest();
+        }
+        else
+        {// code for IE6, IE5
+            xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.open("GET","data.csv",false);
+        xmlhttp.send();
+        xmlDoc=xmlhttp.responseText;    
+        // console.log(xmlDoc);
+        //parse the csv
+        dataCSV = Papa.parse(xmlDoc);
+
         chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
-        setInterval(ChangeTime, 500);
+        // updateTimeTick()
+        setInterval(updateTimeTick, 500);
         
       }
-      if (window.XMLHttpRequest)
-      {// code for IE7+, Firefox, Chrome, Opera, Safari
-          xmlhttp=new XMLHttpRequest();
-      }
-      else
-      {// code for IE6, IE5
-          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-      }
-      xmlhttp.open("GET","data.csv",true);
-      xmlhttp.send();
-      xmlDoc=xmlhttp.responseText;    
 
-      //parse the csv
-      data = Papa.parse(xmlDoc);
+
+      // The main code is here
+
+
+
     </script>
   </head>
-  <body>
+  <body>    
+        <p>Date: <div id ="timeHTML"></div> </p>
+        <input id = "sliderHTML" oninput = "ChangeTime(this.value)" onchange="ChangeTime(this.value)" type="range" value = "0" min="date" max="100" />
         <div id="regions_div" style="width: 900px; height: 500px;"></div>
   </body>
 </html>
