@@ -1,5 +1,6 @@
 <html>
   <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script src="papaparse.min.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
@@ -23,16 +24,34 @@
 
       var content;
 
+      var playAnimation = true; 
+
+      function button()
+      {
+        if (playAnimation)
+        {
+          playAnimation = false;
+          document.getElementById("play").className = "glyphicon glyphicon-play";
+        }
+        else
+        {
+          playAnimation = true; 
+          document.getElementById("play").className = "glyphicon glyphicon-pause";
+
+        }
+      }
+
       function updateTimeTick()
       {
         //This function update the time ever half second. 
         //It changes the slider position as well as putting 
         //the date in the id='time'
         // return;
-
+        if (!playAnimation)
+          return; 
         timeMaster+=1;
         if (timeMaster>dataCSV["data"][0].length-1)
-          timeMaster = 1; 
+          timeMaster = 2; 
         UpdateMap();
       }
 
@@ -42,7 +61,11 @@
       {
         //This is the function that changes the timeMaster 
         //when the slider is moved.
-        // timeMaster = Math.floor(value/100.0*(data["data"].length-1));
+        timeMaster = Math.floor(value/100.0*(dataCSV["data"][0].length));
+        if (timeMaster>dataCSV["data"][0].length-2)
+        {
+          timeMaster = dataCSV["data"][0].length-2;
+        }
         // console.log(timeMaster);
         UpdateMap();
       }
@@ -52,20 +75,30 @@
       function UpdateMap(value)
       {
         // Update the HTML
-        document.getElementById("timeHTML").innerHTML = dataCSV["data"][0][timeMaster];
+        document.getElementById("timeHTML").innerHTML = ""+dataCSV["data"][0][timeMaster];
         document.getElementById("sliderHTML").value = "" + 
           Math.floor(timeMaster/(dataCSV["data"][0].length-1)*100);
         
-        data = [['region', 'Popularity',]];
-        // for (i=1;i<dataCSV["data"].length;i++)
-        for (i=1;i<5;i++)
+        data = [['region', 'Teen birth rate (per 1000)'],["", 0],["",300]];
+        debugValue = [];
+
+        for (i=1;i<dataCSV["data"].length;i++)
+        // for (i=1;i<5;i++)
         {
-          data.push([dataCSV["data"][i][0], Math.floor(Math.random()*1000) ]);
 
-
+          if (dataCSV["data"][i][timeMaster] != "" && ! isNaN( Math.floor(dataCSV["data"][i][timeMaster])) )
+          {
+            debugValue.push(Math.floor(dataCSV["data"][i][timeMaster]));  
+            data.push([dataCSV["data"][i][0],Math.floor(dataCSV["data"][i][timeMaster]) ]);
+          }
         }
+        console.log(debugValue);
         data = google.visualization.arrayToDataTable(data);
-          
+        var options = 
+        {
+          colorAxis: {colors: ['#F1F1F1', '#4CBCBF']} // grey to cyan
+        }
+        
         chart.draw(data, options);
       }
 
@@ -87,13 +120,12 @@
         // console.log(xmlDoc);
         //parse the csv
         dataCSV = Papa.parse(xmlDoc);
-        console.log(dataCSV);
+        // console.log(dataCSV);
 
 
         chart = new google.visualization.GeoChart(document.getElementById('regions_div'));
-        updateTimeTick()
-        // setInterval(updateTimeTick, 500);
-        
+        setInterval(updateTimeTick, 500);
+        // updateTimeTick();
       }
 
 
@@ -103,10 +135,24 @@
 
     </script>
   </head>
-  <body>    
-        <p>Date: <p id ="timeHTML"></p>
-        </p>
-        <input id = "sliderHTML" oninput = "ChangeTime(this.value)" onchange="ChangeTime(this.value)" type="range" value = "0" min="date" max="100" />
+  <body>
+    <div class = "container">   
+        <h1>Teen Birth Rate per 1000</h1> 
+        <div class = "row">
+          <div class = "col-md-2">
+            <p>Date: <span style ="display:inline;" id ="timeHTML"></span></p>
+          </div>
+          <div class = "col-md-2">
+            <button type="button" onclick = "button()" class="btn btn-default">
+              <span id = "play" class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+        <input id = "sliderHTML" oninput = "ChangeTime(this.value)" onchange="ChangeTime(this.value)" type="range" value = "2" min="2" max="100" style = " width:13em;"/>
+        
+
         <div id="regions_div" style="width: 900px; height: 500px;"></div>
+        <p><a href="">data</a>, <a href="">source code</a></p>
+    </div>    
   </body>
 </html>
